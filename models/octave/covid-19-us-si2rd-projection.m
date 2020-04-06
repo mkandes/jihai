@@ -2,15 +2,13 @@
 % =====================================================================
 % NAME
 % 
-%    covid-19-g20-si2rd-projection
+%    covid-19-us-si2rd-projection
 %
 % DESCRIPTION
 %
-%    covid-19-g20-si2rd-projection computes a projection for covid-19 
-%
-% INPUT ARGUMENTS
-%
-% OUTPUT
+%    covid-19-us-si2rd-projection computes a projection for the 
+%    progression of covid-19 in the United States using the SI2RD 
+%    model. 
 %
 % AUTHOR
 %
@@ -22,7 +20,7 @@
 %
 % LAST UPDATED
 %
-%    Wednesday, April 1st, 2020
+%    Sunday, April 5th, 2020
 % ---------------------------------------------------------------------
 
 % Clean up workspace. 
@@ -30,7 +28,7 @@ close all;
 clear all;
 
 % Enter the number of days in the SIRD timeseries dataset.
-t_data = linspace(1,71,71);
+t_data = linspace(1,75,75);
 
 % Read in the SIRD data from a csv file. The format of the csv file is
 % assumed to be as follows:
@@ -41,7 +39,7 @@ t_data = linspace(1,71,71);
 %    Row 4: Number of individuals who have died (D) from the disease. 
 %
 % Note: The date row is not read in.
-x_data = csvread('../../data/covid-19/jhu/covid-19-g20-infections-recoveries-deaths-jhu-20200401-33640a5.csv',1,0);
+x_data = csvread('../../data/covid-19/jhu/us/covid-19-us-infections-recoveries-deaths-jhu-20200405-865c933.csv',1,0);
 
 % Transpose data from row-major to column-major format.
 x_data = x_data';
@@ -54,8 +52,7 @@ x_data = [zeros(size(x_data, 1), 1) x_data];
 
 % Compute the number of individuals who are still suseptible (S) to the
 % disease and save the data into the new leading column. 
-% 44938712+25664300+210147125+37894799+67022000+83149300+1352642280+267670543+60317546+126150000+126577691+146745098+34218169+58775022+51709098+83154997+67886004+328239523
-x_data(:,1) = 3172902207 - x_data(:,2) - x_data(:,3) - x_data(:,4);
+x_data(:,1) = 328239523 - x_data(:,2) - x_data(:,3) - x_data(:,4);
 
 # Remove initial days of epidemic, if desired.
 %t_c=42;
@@ -63,14 +60,15 @@ x_data(:,1) = 3172902207 - x_data(:,2) - x_data(:,3) - x_data(:,4);
 %x_data(1:t_c,:)=[];
 
 % Define initial conditions for the population, where x0 = [s0; iU; iC, r0; d0].
-iU = 120000;
-x0 = [3172902207-iU; iU; 7; 0; 0]; % t_c=0
+iU = 1023;
+x0 = [328239523-iU; iU; 1; 0; 0]; % t_c=0
 
 % Estimate the value for each of the key parameters that will dictate
 % the expected progression of the disease in the population, including 
-% the infectivity rate (beta), the recovery rate (gamma), and the death
-% rate (mu), where p = [beta nu gamma_u gamma_c mu].
-p = [1/3.4 0.00009 1.00*(1/9) 0.99*(1/12) 0.01*(1/3)];
+% the transmission rate (beta), the testing rate (nu), the recovery rates of 
+% both unconfirmed and confirmed infections(gamma_u and gamma_c, respectively), 
+% and the mortality rate (mu), where p = [beta nu gamma_u gamma_c mu].
+p = [1/3.4 0.0009 1/10 1/14 0.005];
 
 % Fit key parameters to the data. 
 p = fminsearch(@(p) e_si2rd(t_data, x0, x_data, p), p);
@@ -89,7 +87,7 @@ plot(t_data, x_data(:,2), 'or', 'markerfacecolor', 'r', 'markersize', 7, ...
      t, x(:,3), '-r', 'linewidth', 2, ...
      t, x(:,4), '-g', 'linewidth', 2, ...
      t, x(:,5), '-k', 'linewidth', 2)
-title('G20 COVID-19 SI2RD Epidemiological Model');
+title('U.S. COVID-19 SI2RD Epidemiological Model');
 legend("Confirmed Infectious (data)", ...
        "Confirmed Dead (data)", ...
        "Susceptible (model)", ...
@@ -101,14 +99,14 @@ legend("Confirmed Infectious (data)", ...
        "northeast");
 ylabel('Number of Susceptible, Infectious, Recovered, and Dead');
 xlabel('Time (days)');
-axis ([1 300 0 1000000]);
-text(225, 600000, strcat('beta=' , mat2str(p(1),3)));
-text(225, 550000, strcat('nu=', mat2str(p(2),3)));
-text(225, 500000, strcat('gamma_u=', mat2str(p(3),3)));
-text(225, 450000, strcat('gamma_c=', mat2str(p(4),3)));
-text(225, 400000, strcat('mu=', mat2str(p(5),3)));
-text(225, 350000, strcat('err=', num2str(err,3)));
-print -dpng covid-19-g20-si2rd-projection-jhu-20200330-ce9872c.png
+axis ([1 300 0 1500000]);
+text(225, 900000, strcat('beta=' , mat2str(p(1),3)));
+text(225, 825000, strcat('nu=', mat2str(p(2),3)));
+text(225, 750000, strcat('gamma_u=', mat2str(p(3),3)));
+text(225, 675000, strcat('gamma_c=', mat2str(p(4),3)));
+text(225, 600000, strcat('mu=', mat2str(p(5),3)));
+text(225, 525000, strcat('err=', num2str(err,3)));
+print -dpng covid-19-us-si2rd-projection-jhu-20200405-865c933.png
 
 
 % =====================================================================
