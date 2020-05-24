@@ -20,7 +20,7 @@
 %
 % LAST UPDATED
 %
-%    Sunday, April 19th, 2020
+%    Sunday, May 2nd, 2020
 % ---------------------------------------------------------------------
 
 % Clean up workspace. 
@@ -28,7 +28,7 @@ close all;
 clear all;
 
 % Enter the number of days in the SIRD timeseries dataset.
-t_data = linspace(1,89,89);
+t_data = linspace(1,101,101);
 
 % Read in the SIRD data from a csv file. The format of the csv file is
 % assumed to be as follows:
@@ -39,7 +39,7 @@ t_data = linspace(1,89,89);
 %    Row 4: Number of individuals who have died (D) from the disease. 
 %
 % Note: The date row is not read in.
-x_data = csvread('../../data/covid-19/jhu/g20/covid-19-g20-infections-recoveries-deaths-jhu-20200419-1f23447.csv',1,0);
+x_data = csvread('../../data/covid-19/jhu/g20/covid-19-g20-infections-recoveries-deaths-jhu-20200502-df78742.csv',1,0);
 
 % Transpose data from row-major to column-major format.
 x_data = x_data';
@@ -60,7 +60,7 @@ x_data(:,1) = 3172902207 - x_data(:,2) - x_data(:,3) - x_data(:,4);
 %x_data(1:t_c,:)=[];
 
 % Define initial conditions for the population, where x0 = [s0; iU; iC, r0; d0].
-iU = 524288*2;
+iU = 524288*4;
 x0 = [3172902207-iU; iU; 7; 0; 0]; % t_c=0
 
 % Estimate the value for each of the key parameters that will dictate
@@ -68,7 +68,7 @@ x0 = [3172902207-iU; iU; 7; 0; 0]; % t_c=0
 % the transmission rate (beta), the testing rate (nu), the recovery rates of 
 % both unconfirmed and confirmed infections(gamma_u and gamma_c, respectively), 
 % and the mortality rate (mu), where p = [beta nu gamma_u gamma_c mu].
-p = [1/5.7 0.0001 1/12 1/16 0.005];
+p = [1/5.8 0.0001 1/27 1/27 0.005];
 
 % Fit key parameters to the data. 
 p = fminsearch(@(p) e_si2rd(t_data, x0, x_data, p), p);
@@ -99,14 +99,14 @@ legend("Confirmed Infectious (data)", ...
        "northeast");
 ylabel('Number of Susceptible, Infectious, Recovered, and Dead');
 xlabel('Time (days)');
-axis ([1 300 0 1500000]);
+axis ([1 300 0 2000000]);
 text(225, 900000, strcat('beta=', mat2str(p(1),3)));
 text(225, 825000, strcat('nu=', mat2str(p(2),3)));
 text(225, 750000, strcat('gamma_u=', mat2str(p(3),3)));
 text(225, 675000, strcat('gamma_c=', mat2str(p(4),3)));
 text(225, 600000, strcat('mu=', mat2str(p(5),3)));
 text(225, 525000, strcat('err=', num2str(err,3)));
-print -dpng covid-19-g20-si2rd-projection-jhu-20200419-1f23447.png
+print -dpng covid-19-g20-si2rd-projection-jhu-20200502-df78742.png
 
 
 % =====================================================================
